@@ -1254,10 +1254,7 @@ Resources:
           |
             WITH evs AS (
               SELECT
-                client.client_id as endpoint_id,
-                attributes.campaign_id as campaign_id,
-                event_type,
-                arrival_timestamp
+                *
               FROM event
               WHERE
                 (
@@ -1267,40 +1264,16 @@ Resources:
                 ) OR (
                   ${InteractionsQueryDateScope} = -1
                 )
-                AND
-                event_type != '_custom.recommender'
-            ),
-            recs AS (
-              SELECT
-                attributes.personalize_user_id as personalize_user_id,
-                client.client_id as endpoint_id,
-                attributes.campaign_id as campaign_id,
-                attributes.item_id as item_id,
-                event_type,
-                arrival_timestamp
-              FROM event
-              WHERE
-                (
-                  ${InteractionsQueryDateScope} > 0
-                  AND arrival_timestamp >= date_add('day', -1, CURRENT_DATE)
-                  AND arrival_timestamp < CURRENT_DATE
-                ) OR (
-                  ${InteractionsQueryDateScope} = -1
-                )
-                AND
-                event_type = '_custom.recommender'
             )
             SELECT
-              r.personalize_user_id as USER_ID,
-              r.item_id AS ITEM_ID,
+              b.client.cognito_id as USER_ID,
+              b.monetization.transaction.item_id AS ITEM_ID,
               b.event_type AS EVENT_TYPE,
-              v.EVENT_VALUE,
+              v.event_value as EVENT_VALUE,
               CAST(to_unixtime(b.arrival_timestamp) AS BIGINT) AS TIMESTAMP
             FROM endpoint_export a
-            INNER JOIN recs r
-              ON a.id = r.endpoint_id
             INNER JOIN evs b
-              ON a.id = b.endpoint_id AND r.campaign_id = b.campaign_id
+              ON a.id = b.client.client_id
             INNER JOIN event_value v
               ON b.event_type = v.event_type
 
@@ -1316,8 +1289,9 @@ Resources:
         !Sub
           |
             CREATE EXTERNAL TABLE IF NOT EXISTS `${PinpointEventDatabase}`.event (
-              client struct<client_id:string>,
+              client struct<client_id:string, cognito_id:string>,
               attributes struct<campaign_id:string, item_id:string, personalize_user_id:string>,
+              monetization struct<transaction:struct<item_id:string>>,
               event_type string,
               arrival_timestamp timestamp
             )

@@ -1037,6 +1037,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:personalize:${AWS::Region}:${AWS::AccountId}:dataset/*"
                   - !Sub "arn:aws:personalize:${AWS::Region}:${AWS::AccountId}:dataset-group/*"
+                  - !Sub "arn:aws:personalize:${AWS::Region}:${AWS::AccountId}:dataset-import-job/*"                  
               -
                 Effect: "Allow"
                 Action: "iam:PassRole"

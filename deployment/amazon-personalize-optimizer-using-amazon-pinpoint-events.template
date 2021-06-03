@@ -1260,7 +1260,7 @@ Resources:
               WHERE
                 (
                   ${InteractionsQueryDateScope} > 0
-                  AND arrival_timestamp >= date_add('day', -1, CURRENT_DATE)
+                  AND arrival_timestamp >= date_add('day', -${InteractionsQueryDateScope}, CURRENT_DATE)
                   AND arrival_timestamp < CURRENT_DATE
                 ) OR (
                   ${InteractionsQueryDateScope} = -1
